@@ -1,0 +1,13 @@
+package com.caseStudy.repository;
+
+import org.springframework.data.mongodb.repository.MongoRepository;
+
+import com.caseStudy.model.BookStore;
+
+public interface BookStoreRepository extends MongoRepository<BookStore, String>{
+	
+	public 
+	
+	
+
+}

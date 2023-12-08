@@ -1,0 +1,8 @@
+package com.caseStudy.model;
+
+public class Cart {
+	
+	public int cartId;
+	
+
+}

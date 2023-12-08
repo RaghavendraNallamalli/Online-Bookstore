@@ -1,0 +1,58 @@
+package com.caseStudy.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+
+import com.caseStudy.model.BookStore;
+import com.caseStudy.model.Cart;
+import com.caseStudy.service.CartService;
+
+@RestController
+public class CartController {
+	
+	@Autowired
+	CartService cartService;
+	
+	@Autowired
+	RestTemplate restTemplate;
+	@GetMapping("/getCartList")
+	public List<Cart> getCartList(){
+		return cartService.getAll();
+	}
+	@PostMapping("/createCart/{cartId}/{bookId}")
+	
+	public Cart createCart(@PathVariable("cartId") int cartId,@PathVariable("bookId") int bookId) {
+		
+	Cart cart=cartService.getByCartId(cartId);
+	
+	
+	if(cart==null) {
+	BookStore bookStore=restTemplate.getForObject("http://localhost:8081/getBookById/"+bookId, BookStore.class);
+	
+	List<BookStore> bookStores=new ArrayList<>();
+	bookStores.add(bookStore);
+	cart.setBookStores(bookStores);
+		
+	}
+else {
+		
+	BookStore bookStore=restTemplate.getForObject("http://localhost:8081/getBookById/"+bookId, BookStore.class);
+	
+	List<BookStore> bookStores=cart.getBookStores();
+	bookStores.add(bookStore);
+	
+	cart.setBookStores(bookStores);
+	}
+	
+	return cartService.addBookIntoCart(cart);
+	
+	}
+	
+}

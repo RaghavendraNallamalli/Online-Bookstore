@@ -1,0 +1,5 @@
+package com.caseStudy.repository;
+
+public sealed class BookStoreRepository {
+
+}

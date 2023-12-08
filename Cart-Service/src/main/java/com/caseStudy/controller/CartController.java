@@ -1,0 +1,133 @@
+package com.caseStudy.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+
+import com.caseStudy.model.BookStore;
+import com.caseStudy.model.Cart;
+import com.caseStudy.service.CartService;
+
+@RestController
+public class CartController {
+
+	@Autowired
+	CartService cartService;
+
+	@Autowired
+	RestTemplate restTemplate;
+
+	@GetMapping("/getCartList")
+	public List<Cart> getCartList() {
+		return cartService.getAll();
+	}
+
+//	@PostMapping("/createCart/{cartId}/{bookId}")
+//	
+//	public Cart createCart(@PathVariable("cartId") int cartId,@PathVariable("bookId") int bookId) {
+//		
+//	Cart cart=cartService.getByCartId(cartId);
+//	
+//	
+//	if(cart==null) {
+//	BookStore bookStore=restTemplate.getForObject("http://localhost:8081/getBookById/"+bookId, BookStore.class);
+//	
+//	List<BookStore> bookStores=new ArrayList<>();
+//	bookStores.add(bookStore);
+//	cart.setBookStores(bookStores);
+//		
+//	}
+//else {
+//		
+//	BookStore bookStore=restTemplate.getForObject("http://localhost:8081/getBookById/"+bookId, BookStore.class);
+//	
+//	List<BookStore> bookStores=cart.getBookStores();
+//	bookStores.add(bookStore);
+//	
+//	cart.setBookStores(bookStores);
+//	}
+//	
+//	return cartService.addBookIntoCart(cart);
+//	
+//	}
+	@PostMapping("/createCart/{cartId}/{bookId}/{quantity}")
+	public Cart createCart(@PathVariable("cartId") int cartId, @PathVariable("bookId") int bookId,
+			@PathVariable("quantity") int quantity) {
+
+		Cart cart = cartService.getByCartId(cartId);
+
+		Cart cart2 = new Cart();
+
+		if (cart == null) {
+			BookStore bookStore = restTemplate.getForObject("http://localhost:8081/getBookById/" + bookId,
+					BookStore.class);
+			bookStore.setQuantity(quantity);
+
+			double updatePrice = bookStore.getBookPrice() * quantity;
+			bookStore.setBookPrice(updatePrice);
+
+			List<BookStore> bookStores = new ArrayList<>();
+
+			bookStores.add(bookStore);
+			cart2.setCartId(cartId);
+			cart2.setBookStores(bookStores);
+			cart2.setTotal(updatePrice);
+		} else {
+			BookStore bookStore = restTemplate.getForObject("http://localhost:8081/getBookById/" + bookId,
+					BookStore.class);
+			double totalPrice = 0;
+			Boolean containsBoolean = false;
+
+			List<BookStore> book = updateBookQuantity(cartId, bookId, quantity);
+
+//			for (BookStore bookStore2 : book) {
+//				if (bookStore2.getBookId() == bookId) {
+//					bookStore2.setQuantity(bookStore2.getQuantity() + quantity);
+//					bookStore2.setBookPrice(bookStore2.getQuantity() * bookStore.getBookPrice());
+//					containsBoolean = true;
+//				}
+//			}
+
+			if (containsBoolean == false) {
+				bookStore.setQuantity(bookStore.getQuantity() + quantity);
+
+				bookStore.setBookPrice(bookStore.getQuantity() * bookStore.getBookPrice());
+				book.add(bookStore);
+
+			}
+			for (BookStore bookStore2 : book) {
+
+				totalPrice += bookStore2.getBookPrice();
+			}
+			cart2.setCartId(cartId);
+			cart2.setBookStores(book);
+			cart2.setTotal(totalPrice);
+
+		}
+
+		return cartService.addBookIntoCart(cart2);
+	}
+
+	public List<BookStore> updateBookQuantity(int cartId, int bookId, int quantity) {
+		Cart cart = cartService.getByCartId(cartId);
+		BookStore bookStore = restTemplate.getForObject("http://localhost:8081/getBookById/" + bookId, BookStore.class);
+		List<BookStore> bStores = cart.getBookStores();
+
+		for (BookStore bookStore2 : bStores) {
+			if (bookStore2.getBookId() == bookId) {
+				bookStore2.setQuantity(bookStore2.getQuantity() + quantity);
+				bookStore2.setBookPrice(bookStore2.getQuantity() * bookStore.getBookPrice());
+
+			}
+
+		}
+		return cart.getBookStores();
+	}
+
+}

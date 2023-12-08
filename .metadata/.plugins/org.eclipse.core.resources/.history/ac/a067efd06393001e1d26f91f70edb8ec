@@ -1,0 +1,28 @@
+package com.caseStudy.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.caseStudy.model.BookStore;
+import com.caseStudy.service.BookStoreService;
+
+@RestController
+public class BookStoreController {
+	
+	@Autowired
+	BookStoreService bookStoreService;
+	@GetMapping("/getAllBooks")
+	public List<BookStore> getAllBooks(){
+		return bookStoreService.getAll();	
+		}
+	
+	public List<BookStore> getBookById(int id){
+		
+	}
+	
+	
+
+}
